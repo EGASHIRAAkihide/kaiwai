@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -124,13 +125,26 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _loadSpots() async {
     try {
+      debugPrint('[MapScreen] _loadSpots → starting fetchSpots');
       final spots = await _spotRepo.fetchSpots();
+      debugPrint('[MapScreen] _loadSpots → received ${spots.length} spots');
       if (!mounted) return;
-      setState(() => _spots = spots);
+      if (spots.isEmpty) {
+        setState(() {
+          _spots = spots;
+          _errorMessage = 'No spots in this area.';
+        });
+      } else {
+        setState(() {
+          _spots = spots;
+          _errorMessage = null;
+        });
+      }
       _updateNearbySpot();
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('[MapScreen] _loadSpots → ERROR: $e\n$stack');
       if (!mounted) return;
-      setState(() => _errorMessage = 'Could not load spots.');
+      setState(() => _errorMessage = 'Could not load spots. ($e)');
     }
   }
 
@@ -168,6 +182,15 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _performCheckIn(Spot spot) async {
+    // TODO(auth): remove this dev bypass before release.
+    // Navigate directly so the street-style UI is visible without a login.
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => SpotDetailScreen(spot: spot)),
+    );
+    return;
+
+    // ignore: dead_code
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
       if (!mounted) return;

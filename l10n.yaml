@@ -1,0 +1,17 @@
+# flutter gen-l10n configuration.
+#
+# To activate code-generated localizations:
+#   1. Add `generate: true` under the `flutter:` section in pubspec.yaml.
+#   2. Run `flutter pub get` — this triggers `flutter gen-l10n` automatically
+#      during build and writes the generated class to the path below.
+#   3. Replace `AppL10n.of(context)` calls with the generated
+#      `AppLocalizations.of(context)`.
+#
+# Until then, lib/l10n/app_l10n.dart is the hand-written delegate that
+# provides the same API without any build step.
+
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-dir: lib/l10n/generated
+nullable-getter: false

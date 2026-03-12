@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:   # i18n — built into the Flutter SDK
+    sdk: flutter
 
   # Maps (OpenStreetMap — no API key required)
   flutter_map: ^7.0.2
@@ -23,6 +25,12 @@ dependencies:
   # UI
   google_fonts: ^6.2.1
 
+  # i18n / l10n
+  intl: ^0.20.2           # Date/number formatting + ARB message parsing
+
+  # Timezone-aware time display (nomad local time per spot)
+  timezone: ^0.9.4        # IANA timezone DB; call initializeTimeZones() in main()
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -30,3 +38,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true

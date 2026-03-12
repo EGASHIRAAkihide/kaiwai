@@ -1,0 +1,48 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "KAIWAI",
+
+  "locating": "Locating...",
+  "myLocation": "My location",
+
+  "spotsNearby": "{count} spots nearby",
+  "@spotsNearby": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "withinDistance": "Within {meters}m",
+  "@withinDistance": {
+    "placeholders": {
+      "meters": { "type": "int" }
+    }
+  },
+
+  "enterSpot": "ENTER",
+  "loginRequired": "Login required",
+  "checkInFailed": "Check-in failed",
+
+  "noSpotsNearby": "No spots in this area.",
+  "couldNotLoadSpots": "Could not load spots.",
+  "couldNotGetLocation": "Could not get location.",
+
+  "notesTab": "界隈ノート",
+  "rankingTab": "ランキング",
+
+  "loading": "LOADING...",
+  "dataLoadFailed": "DATA LOAD FAILED",
+  "retry": "RETRY",
+
+  "noContentYet": "NO CONTENT YET",
+  "tapToRead": "TAP TO READ",
+  "noCheckInsYet": "NO CHECK-INS YET",
+
+  "radiusSuffix": "M RADIUS",
+  "localTimeLabel": "LOCAL",
+
+  "errorLoadData": "Failed to load data",
+
+  "warningPrivate": "/// WARNING /// PRIVATE ///"
+}

@@ -1,0 +1,48 @@
+{
+  "@@locale": "ja",
+
+  "appTitle": "界隈",
+
+  "locating": "位置確認中...",
+  "myLocation": "現在地",
+
+  "spotsNearby": "{count} スポット",
+  "@spotsNearby": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "withinDistance": "{meters}m 以内",
+  "@withinDistance": {
+    "placeholders": {
+      "meters": { "type": "int" }
+    }
+  },
+
+  "enterSpot": "界隈に入る",
+  "loginRequired": "ログインが必要です",
+  "checkInFailed": "チェックインに失敗しました",
+
+  "noSpotsNearby": "近くにスポットがありません。",
+  "couldNotLoadSpots": "スポットを読み込めませんでした。",
+  "couldNotGetLocation": "位置情報を取得できませんでした。",
+
+  "notesTab": "界隈ノート",
+  "rankingTab": "ランキング",
+
+  "loading": "読込中...",
+  "dataLoadFailed": "データ読み込み失敗",
+  "retry": "再試行",
+
+  "noContentYet": "まだコンテンツがありません",
+  "tapToRead": "タップして読む",
+  "noCheckInsYet": "まだチェックインがありません",
+
+  "radiusSuffix": "M 範囲",
+  "localTimeLabel": "現地時刻",
+
+  "errorLoadData": "データの読み込みに失敗しました",
+
+  "warningPrivate": "/// 立入禁止 /// プライベート ///"
+}

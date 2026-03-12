@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:timezone/data/latest_10y.dart' as tz_data;
 
 import 'core/theme/app_theme.dart';
 import 'features/map/presentation/screens/map_screen.dart';
+import 'l10n/app_l10n.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialise the IANA timezone database so TimezoneUtils can resolve
+  // arbitrary timezone IDs (e.g., "Asia/Tokyo", "America/New_York").
+  // latest_10y contains rules for the next 10 years — smaller than latest.dart
+  // (~80 KB vs ~400 KB) and sufficient for a travel app.
+  tz_data.initializeTimeZones();
 
   await Supabase.initialize(
     // url: const String.fromEnvironment('SUPABASE_URL'),
@@ -24,9 +32,16 @@ class KaiwaiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '界隈',
+      title: 'KAIWAI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
+
+      // ── Localizations ────────────────────────────────────────────────────
+      // AppL10n.localizationsDelegates includes our delegate plus the three
+      // Flutter-provided Material / Widgets / Cupertino delegates.
+      localizationsDelegates: AppL10n.localizationsDelegates,
+      supportedLocales: AppL10n.supportedLocales,
+
       home: const MapScreen(),
     );
   }
