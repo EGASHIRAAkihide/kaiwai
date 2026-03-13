@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -10,6 +11,7 @@ import '../../data/repositories/content_repository.dart';
 import '../../domain/models/content.dart';
 import '../../domain/models/leaderboard_entry.dart';
 import '../../domain/models/spot.dart';
+import 'create_note_screen.dart';
 import 'note_detail_screen.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -35,9 +37,19 @@ String _tallyMark(int rank) => switch (rank) {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 class SpotDetailScreen extends StatefulWidget {
-  const SpotDetailScreen({super.key, required this.spot});
+  const SpotDetailScreen({
+    super.key,
+    required this.spot,
+    this.userInsideSpot = false,
+  });
 
   final Spot spot;
+
+  /// Whether the user is currently within this spot's radius.
+  ///
+  /// When `true`, premium content is unlocked for reading (location-verified
+  /// access) and the note creation FAB is shown.
+  final bool userInsideSpot;
 
   @override
   State<SpotDetailScreen> createState() => _SpotDetailScreenState();
@@ -50,22 +62,30 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   final _contentRepo = ContentRepository();
 
   List<Content>? _contents;
-  List<LeaderboardEntry>? _leaderboard;
+  late final Stream<List<LeaderboardEntry>> _leaderboardStream;
   String? _error;
+  int _currentTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
     _glitchController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
     )..forward();
+    _leaderboardStream = _contentRepo.leaderboardStream(widget.spot.id);
     _load();
+  }
+
+  void _onTabChanged() {
+    if (mounted) setState(() => _currentTabIndex = _tabController.index);
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _glitchController.dispose();
     super.dispose();
@@ -73,27 +93,62 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
   Future<void> _load() async {
     try {
-      final results = await Future.wait([
-        _contentRepo.fetchContents(widget.spot.id),
-        _contentRepo.getLeaderboard(widget.spot.id),
-      ]);
+      final real = await _contentRepo.fetchContents(widget.spot.id);
       if (!mounted) return;
-      setState(() {
-        _contents = results[0] as List<Content>;
-        _leaderboard = results[1] as List<LeaderboardEntry>;
-      });
+      // Append dev data so the screen is never empty during demos.
+      setState(() => _contents = kDebugMode ? [...real, ..._devContents] : real);
     } catch (_) {
-      // TODO(auth): remove dev fallback before release — real data load blocked
-      //             by RLS until the user is authenticated.
       if (!mounted) return;
-      setState(() {
-        _contents = _devContents;
-        _leaderboard = _devLeaderboard;
-      });
+      setState(() => _contents = kDebugMode ? _devContents : []);
     }
   }
 
+  Future<void> _reloadContents() async {
+    try {
+      final real = await _contentRepo.fetchContents(widget.spot.id);
+      if (!mounted) return;
+      setState(() => _contents = kDebugMode ? [...real, ..._devContents] : real);
+    } catch (_) {}
+  }
+
+  Future<void> _openCreateNote() async {
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => CreateNoteScreen(spot: widget.spot),
+      ),
+    );
+    if (created == true) _reloadContents();
+  }
+
   // ── Dev dummy data (visible before auth is wired up) ──────────────────────
+
+  static const _devLeaderboard = [
+    LeaderboardEntry(
+      userId: 'dev-u1',
+      username: 'APEX_RUNNER',
+      checkInCount: 47,
+    ),
+    LeaderboardEntry(
+      userId: 'dev-u2',
+      username: 'IRONCLAD_88',
+      checkInCount: 34,
+    ),
+    LeaderboardEntry(
+      userId: 'dev-u3',
+      username: 'GHOST_ATHLETE',
+      checkInCount: 29,
+    ),
+    LeaderboardEntry(
+      userId: 'dev-u4',
+      username: 'URBAN_BLADE',
+      checkInCount: 18,
+    ),
+    LeaderboardEntry(
+      userId: 'dev-u5',
+      username: 'CTRL_ALT_RUN',
+      checkInCount: 11,
+    ),
+  ];
 
   static final _devContents = [
     const Content(
@@ -195,39 +250,23 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     ),
   ];
 
-  static final _devLeaderboard = [
-    const LeaderboardEntry(
-      userId: 'u1',
-      username: 'TENZING_ULTRA',
-      checkInCount: 47,
-    ),
-    const LeaderboardEntry(
-      userId: 'u2',
-      username: 'SAKURA_GRIND',
-      checkInCount: 39,
-    ),
-    const LeaderboardEntry(
-      userId: 'u3',
-      username: 'NEON_MONK',
-      checkInCount: 31,
-    ),
-    const LeaderboardEntry(
-      userId: 'u4',
-      username: 'ASPHALT_OX',
-      checkInCount: 22,
-    ),
-    const LeaderboardEntry(
-      userId: 'u5',
-      username: 'FLUX_RIDER',
-      checkInCount: 14,
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: _buildAppBar(),
+      floatingActionButton: _currentTabIndex == 0
+          ? FloatingActionButton(
+              onPressed: _openCreateNote,
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.background,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.zero,
+              ),
+              child: const Icon(Icons.add, size: 28),
+            )
+          : null,
       body: _error != null ? _buildError() : _buildBody(),
     );
   }
@@ -304,7 +343,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   }
 
   Widget _buildBody() {
-    if (_contents == null || _leaderboard == null) {
+    if (_contents == null) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -333,8 +372,12 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         _NotesTab(
           contents: _contents!,
           cityCode: TimezoneUtils.cityCode(widget.spot.cityName),
+          userInsideSpot: widget.userInsideSpot,
         ),
-        _RankingTab(leaderboard: _leaderboard!),
+        _RankingTab(
+          stream: _leaderboardStream,
+          devEntries: kDebugMode ? _devLeaderboard : const [],
+        ),
       ],
     );
   }
@@ -553,15 +596,15 @@ class _NeonFlickerState extends State<_NeonFlicker>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 3200),
     )..repeat();
     _opacity = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.92), weight: 35),
-      TweenSequenceItem(tween: Tween(begin: 0.92, end: 1.0), weight: 10),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.97), weight: 25),
-      TweenSequenceItem(tween: Tween(begin: 0.97, end: 0.50), weight: 5),
-      TweenSequenceItem(tween: Tween(begin: 0.50, end: 1.0), weight: 5),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.96), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.93), weight: 38),
+      TweenSequenceItem(tween: Tween(begin: 0.93, end: 1.0), weight: 10),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.97), weight: 28),
+      TweenSequenceItem(tween: Tween(begin: 0.97, end: 0.65), weight: 3),
+      TweenSequenceItem(tween: Tween(begin: 0.65, end: 1.0), weight: 3),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.96), weight: 18),
     ]).animate(_ctrl);
   }
 
@@ -584,10 +627,15 @@ class _NeonFlickerState extends State<_NeonFlicker>
 // ── Notes Tab ─────────────────────────────────────────────────────────────────
 
 class _NotesTab extends StatelessWidget {
-  const _NotesTab({required this.contents, required this.cityCode});
+  const _NotesTab({
+    required this.contents,
+    required this.cityCode,
+    required this.userInsideSpot,
+  });
 
   final List<Content> contents;
   final String cityCode;
+  final bool userInsideSpot;
 
   @override
   Widget build(BuildContext context) {
@@ -612,17 +660,27 @@ class _NotesTab extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       itemCount: contents.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (_, i) =>
-          _ContentCard(content: contents[i], cityCode: cityCode),
+      itemBuilder: (_, i) => _ContentCard(
+        content: contents[i],
+        cityCode: cityCode,
+        userInsideSpot: userInsideSpot,
+      ),
     );
   }
 }
 
 class _ContentCard extends StatelessWidget {
-  const _ContentCard({required this.content, required this.cityCode});
+  const _ContentCard({
+    required this.content,
+    required this.cityCode,
+    required this.userInsideSpot,
+  });
 
   final Content content;
   final String cityCode;
+
+  /// When true, premium content barricade is lifted (location-verified access).
+  final bool userInsideSpot;
 
   String _extractBody() {
     final json = content.bodyJson;
@@ -632,6 +690,8 @@ class _ContentCard extends StatelessWidget {
   }
 
   void _openDetail(BuildContext context) {
+    // Locked premium content — user must be inside the spot to read.
+    if (content.isPremium && !userInsideSpot) return;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => NoteDetailScreen(
@@ -707,7 +767,8 @@ class _ContentCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (content.isPremium) const _BarricadeTapeOverlay(),
+            if (content.isPremium && !userInsideSpot)
+              const _BarricadeTapeOverlay(),
           ],
         ),
       ),
@@ -771,34 +832,48 @@ class _BarricadeTapeOverlay extends StatelessWidget {
 // ── Ranking Tab ───────────────────────────────────────────────────────────────
 
 class _RankingTab extends StatelessWidget {
-  const _RankingTab({required this.leaderboard});
+  const _RankingTab({
+    required this.stream,
+    required this.devEntries,
+  });
 
-  final List<LeaderboardEntry> leaderboard;
+  final Stream<List<LeaderboardEntry>> stream;
+
+  /// Fallback/filler entries always appended after real data.
+  final List<LeaderboardEntry> devEntries;
 
   @override
   Widget build(BuildContext context) {
-    if (leaderboard.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.leaderboard_rounded,
-                color: AppTheme.textSecondary, size: 40),
-            const SizedBox(height: 12),
-            Text(
-              AppL10n.of(context).noCheckInsYet,
-              style: _streetFont(size: 12, color: AppTheme.textSecondary),
-            ),
-          ],
-        ),
-      );
-    }
+    return StreamBuilder<List<LeaderboardEntry>>(
+      stream: stream,
+      builder: (context, snapshot) {
+        // On error (e.g. RLS blocks unauthenticated reads) show dev data.
+        if (snapshot.hasError) {
+          return _buildList(devEntries);
+        }
 
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: AppTheme.accent,
+              strokeWidth: 2,
+            ),
+          );
+        }
+
+        // FIRST real data, SECOND dev filler — screen never looks empty.
+        final merged = [...snapshot.data!, ...devEntries];
+        return _buildList(merged);
+      },
+    );
+  }
+
+  Widget _buildList(List<LeaderboardEntry> entries) {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
-      itemCount: leaderboard.length,
+      itemCount: entries.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, i) => _RankingRow(entry: leaderboard[i], rank: i + 1),
+      itemBuilder: (_, i) => _RankingRow(entry: entries[i], rank: i + 1),
     );
   }
 }
@@ -815,7 +890,12 @@ class _RankingRow extends StatelessWidget {
     final rankColor = isTop3 ? AppTheme.accent : AppTheme.textSecondary;
 
     Widget row = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: EdgeInsets.only(
+        left: isTop3 ? 20 : 16,
+        right: 16,
+        top: 14,
+        bottom: 14,
+      ),
       decoration: BoxDecoration(
         color: isTop3
             ? AppTheme.surface
@@ -829,12 +909,12 @@ class _RankingRow extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 36,
+            width: 48,
             child: Text(
               _tallyMark(rank),
               style: GoogleFonts.rubikMonoOne(
                 color: rankColor,
-                fontSize: isTop3 ? 17 : 13,
+                fontSize: isTop3 ? 16 : 13,
                 shadows: isTop3
                     ? [
                         Shadow(

@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/screens/profile_screen.dart';
 import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/spot_repository.dart';
 import '../../domain/models/spot.dart';
@@ -182,27 +184,21 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _performCheckIn(Spot spot) async {
-    // TODO(auth): remove this dev bypass before release.
-    // Navigate directly so the street-style UI is visible without a login.
     if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => SpotDetailScreen(spot: spot)),
-    );
-    return;
-
-    // ignore: dead_code
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: AppTheme.surface,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: const Text(
-            'ログインが必要です',
-            style: TextStyle(color: AppTheme.textPrimary),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          content: Text(
+            'AUTH REQUIRED — LOGIN TO ENTER',
+            style: GoogleFonts.robotoMono(
+              color: AppTheme.danger,
+              fontSize: 11,
+              letterSpacing: 1.2,
+            ),
           ),
         ),
       );
@@ -214,20 +210,26 @@ class _MapScreenState extends State<MapScreen> {
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => SpotDetailScreen(spot: spot),
+          builder: (_) => SpotDetailScreen(
+            spot: spot,
+            userInsideSpot: _nearbySpot?.id == spot.id,
+          ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: AppTheme.danger.withOpacity(0.9),
+          backgroundColor: AppTheme.surface,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: const Text(
-            'チェックインに失敗しました',
-            style: TextStyle(color: Colors.white),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          content: Text(
+            'CHECK-IN FAILED — TRY AGAIN',
+            style: GoogleFonts.robotoMono(
+              color: AppTheme.danger,
+              fontSize: 11,
+              letterSpacing: 1.2,
+            ),
           ),
         ),
       );
@@ -249,6 +251,7 @@ class _MapScreenState extends State<MapScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withOpacity(0.3),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (_) => SpotInfoSheet(
         spot: spot,
         onCheckIn: () {
@@ -358,6 +361,13 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ],
           ),
+
+        RichAttributionWidget(
+          attributions: const [
+            TextSourceAttribution('OpenStreetMap contributors'),
+            TextSourceAttribution('CartoDB'),
+          ],
+        ),
       ],
     );
   }
@@ -388,6 +398,10 @@ class _MapScreenState extends State<MapScreen> {
               const SizedBox(width: 8),
               const _Pill(label: 'Locating...'),
             ],
+
+            // Identity button
+            const SizedBox(width: 8),
+            _IdButton(),
           ],
         ),
       ),
@@ -403,7 +417,6 @@ class _MapScreenState extends State<MapScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: AppTheme.danger.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppTheme.danger.withOpacity(0.3)),
         ),
         child: Text(
@@ -424,7 +437,7 @@ class _MapScreenState extends State<MapScreen> {
       left: 16,
       right: 16,
       child: spot != null
-          ? _ProximityBanner(
+          ? ProximityBanner(
               spot: spot,
               distanceMeters: dist?.round() ?? 0,
               onCheckIn: () => _performCheckIn(spot),
@@ -515,99 +528,26 @@ class _UserLocationDotState extends State<_UserLocationDot>
   }
 }
 
-/// Banner shown at the bottom of the map when the user enters a spot's radius.
-class _ProximityBanner extends StatelessWidget {
-  const _ProximityBanner({
-    required this.spot,
-    required this.distanceMeters,
-    required this.onCheckIn,
-  });
-
-  final Spot spot;
-  final int distanceMeters;
-  final VoidCallback onCheckIn;
-
+/// Tappable `[ ID ]` chip in the top overlay — opens ProfileScreen.
+class _IdButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.accent.withOpacity(0.5), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.accent.withOpacity(0.12),
-            blurRadius: 24,
-            spreadRadius: 4,
+    return GestureDetector(
+      onTap: () => ProfileScreen.show(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppTheme.surface.withOpacity(0.85),
+          border: Border.all(color: AppTheme.accent.withOpacity(0.5)),
+        ),
+        child: Text(
+          '[ ID ]',
+          style: GoogleFonts.robotoMono(
+            color: AppTheme.accent,
+            fontSize: 11,
+            letterSpacing: 1.5,
           ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 16,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Pulsing icon
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppTheme.accent.withOpacity(0.15),
-              border: Border.all(color: AppTheme.accent, width: 1.5),
-            ),
-            child: const Icon(Icons.bolt_rounded,
-                color: AppTheme.accent, size: 22),
-          ),
-          const SizedBox(width: 14),
-          // Spot info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  spot.name,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${distanceMeters}m 以内',
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          // CTA
-          FilledButton(
-            onPressed: onCheckIn,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.accent,
-              foregroundColor: AppTheme.background,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              textStyle: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-              ),
-            ),
-            child: const Text('界隈に入る'),
-          ),
-        ],
+        ),
       ),
     );
   }

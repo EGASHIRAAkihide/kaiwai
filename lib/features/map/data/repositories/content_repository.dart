@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/models/content.dart';
@@ -51,5 +52,49 @@ class ContentRepository {
     return (response as List)
         .map((row) => LeaderboardEntry.fromJson(row as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Inserts a new public note into the [contents] table for [spotId].
+  Future<Content> createContent({
+    required String spotId,
+    required String authorId,
+    required String title,
+    required String body,
+  }) async {
+    debugPrint(
+      '[ContentRepository] createContent → spotId=$spotId authorId=$authorId',
+    );
+    try {
+      final response = await _client
+          .from('contents')
+          .insert({
+            'spot_id': spotId,
+            'author_id': authorId,
+            'title': title,
+            'body_json': {'text': body},
+            'is_premium': false,
+            'price': 0,
+          })
+          .select()
+          .single();
+      debugPrint('[ContentRepository] createContent ✓ id=${response['id']}');
+      return Content.fromJson(response);
+    } catch (e) {
+      debugPrint('[ContentRepository] createContent ✗ ${e.toString()}');
+      rethrow;
+    }
+  }
+
+  /// Real-time stream of leaderboard entries for [spotId].
+  ///
+  /// Emits an updated list whenever a new check-in is recorded for the spot.
+  /// Uses Supabase Realtime on the `check_ins` table; each emission triggers
+  /// a fresh RPC call so the aggregated counts are always accurate.
+  Stream<List<LeaderboardEntry>> leaderboardStream(String spotId) {
+    return _client
+        .from('check_ins')
+        .stream(primaryKey: ['id'])
+        .eq('spot_id', spotId)
+        .asyncMap((_) => getLeaderboard(spotId));
   }
 }
