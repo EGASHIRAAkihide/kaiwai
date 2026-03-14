@@ -30,7 +30,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final email = user?.email ?? user?.id ?? 'UNKNOWN_OPERATIVE';
-    final uid = user?.id?.substring(0, 8).toUpperCase() ?? '--------';
+    final uid = user?.id.substring(0, 8).toUpperCase() ?? '--------';
     final createdAt = user?.createdAt != null
         ? _formatDate(DateTime.parse(user!.createdAt))
         : '--/--/----';
@@ -163,16 +163,16 @@ class ProfileScreen extends StatelessWidget {
                               const SizedBox(height: 16),
 
                               // System specs grid
-                              _SpecRow(label: 'OS', value: 'KAIWAI_v1.0'),
+                              const _SpecRow(label: 'OS', value: 'KAIWAI_v1.0'),
                               const SizedBox(height: 10),
-                              _SpecRow(label: 'STATUS', value: 'ENCRYPTED'),
+                              const _SpecRow(label: 'STATUS', value: 'ENCRYPTED'),
                               const SizedBox(height: 10),
-                              _SpecRow(label: 'NETWORK', value: 'MEMBERS_ONLY'),
+                              const _SpecRow(label: 'NETWORK', value: 'MEMBERS_ONLY'),
                               const SizedBox(height: 10),
                               _SpecRow(
                                   label: 'ENROLLED', value: createdAt),
                               const SizedBox(height: 10),
-                              _SpecRow(
+                              const _SpecRow(
                                   label: 'CLEARANCE', value: 'OPERATIVE'),
                             ],
                           ),

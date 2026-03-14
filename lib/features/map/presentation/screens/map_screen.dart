@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -250,7 +249,7 @@ class _MapScreenState extends State<MapScreen> {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.3),
+      barrierColor: Colors.black.withValues(alpha: 0.3),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (_) => SpotInfoSheet(
         spot: spot,
@@ -320,11 +319,11 @@ class _MapScreenState extends State<MapScreen> {
                   color: (_selectedSpot?.id == s.id
                           ? AppTheme.accent
                           : AppTheme.accentDim)
-                      .withOpacity(0.08),
+                      .withValues(alpha: 0.08),
                   borderColor: (_selectedSpot?.id == s.id
                           ? AppTheme.accent
                           : AppTheme.accentDim)
-                      .withOpacity(0.3),
+                      .withValues(alpha: 0.3),
                   borderStrokeWidth: 1.2,
                 ),
               )
@@ -362,8 +361,8 @@ class _MapScreenState extends State<MapScreen> {
             ],
           ),
 
-        RichAttributionWidget(
-          attributions: const [
+        const RichAttributionWidget(
+          attributions: [
             TextSourceAttribution('OpenStreetMap contributors'),
             TextSourceAttribution('CartoDB'),
           ],
@@ -416,8 +415,8 @@ class _MapScreenState extends State<MapScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AppTheme.danger.withOpacity(0.12),
-          border: Border.all(color: AppTheme.danger.withOpacity(0.3)),
+          color: AppTheme.danger.withValues(alpha: 0.12),
+          border: Border.all(color: AppTheme.danger.withValues(alpha: 0.3)),
         ),
         child: Text(
           _errorMessage!,
@@ -499,9 +498,9 @@ class _UserLocationDotState extends State<_UserLocationDot>
             height: 24 * _pulse.value,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.blue.withOpacity(0.15 * _pulse.value),
+              color: Colors.blue.withValues(alpha: 0.15 * _pulse.value),
               border: Border.all(
-                color: Colors.blue.withOpacity(0.4 * _pulse.value),
+                color: Colors.blue.withValues(alpha: 0.4 * _pulse.value),
                 width: 1,
               ),
             ),
@@ -516,7 +515,7 @@ class _UserLocationDotState extends State<_UserLocationDot>
               border: Border.all(color: Colors.white, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.blue.withOpacity(0.5),
+                  color: Colors.blue.withValues(alpha: 0.5),
                   blurRadius: 6,
                 ),
               ],
@@ -537,8 +536,8 @@ class _IdButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: AppTheme.surface.withOpacity(0.85),
-          border: Border.all(color: AppTheme.accent.withOpacity(0.5)),
+          color: AppTheme.surface.withValues(alpha: 0.85),
+          border: Border.all(color: AppTheme.accent.withValues(alpha: 0.5)),
         ),
         child: Text(
           '[ ID ]',
@@ -563,7 +562,7 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.surface.withOpacity(0.85),
+        color: AppTheme.surface.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppTheme.border),
       ),

@@ -161,7 +161,7 @@ class SpotRepository {
 // The cache TTL is 5 minutes — long enough to survive a subway tunnel but
 // short enough to pick up new spots when the user resurfaces.
 
-// ignore_for_file: unused_element
+// ignore_for_file: unused_element, unused_field
 
 /// A [SpotRepository] wrapper that transparently caches spot lists locally.
 ///
@@ -200,7 +200,7 @@ class _CachedSpotRepository {
   }) async {
     final cacheKey = 'nearby_${latitude.toStringAsFixed(3)}'
         '_${longitude.toStringAsFixed(3)}'
-        '_${radiusMeters}';
+        '_$radiusMeters';
     final tsKey = '${cacheKey}_ts';
 
     // Return cache if still fresh

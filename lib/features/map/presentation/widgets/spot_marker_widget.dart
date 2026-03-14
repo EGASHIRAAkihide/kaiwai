@@ -36,14 +36,14 @@ class SpotMarkerWidget extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppTheme.accent.withOpacity(0.45),
+                    color: AppTheme.accent.withValues(alpha: 0.45),
                     blurRadius: 20,
                     spreadRadius: 4,
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
+                    color: Colors.black.withValues(alpha: 0.4),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -246,15 +246,15 @@ class ProximityBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        border: Border.all(color: AppTheme.accent.withOpacity(0.5), width: 1.5),
+        border: Border.all(color: AppTheme.accent.withValues(alpha: 0.5), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.accent.withOpacity(0.12),
+            color: AppTheme.accent.withValues(alpha: 0.12),
             blurRadius: 24,
             spreadRadius: 4,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 16,
           ),
         ],
@@ -267,7 +267,7 @@ class ProximityBanner extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppTheme.accent.withOpacity(0.15),
+              color: AppTheme.accent.withValues(alpha: 0.15),
               border: Border.all(color: AppTheme.accent, width: 1.5),
             ),
             child: const Icon(Icons.bolt_rounded,

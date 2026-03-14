@@ -60,7 +60,7 @@ void main() {
 
     test('Case B — user 299 m away from a 300 m-radius spot → inside', () {
       // Shift user ~299 m north along the latitude axis
-      final userLat = spotLat + (299.0 / metersPerDegLat);
+      const userLat = spotLat + (299.0 / metersPerDegLat);
       expect(
         LocationUtils.isInsideSpot(
           userLat: userLat,
@@ -75,7 +75,7 @@ void main() {
 
     test('Case C — user 301 m away from a 300 m-radius spot → outside', () {
       // Shift user ~301 m north along the latitude axis
-      final userLat = spotLat + (301.0 / metersPerDegLat);
+      const userLat = spotLat + (301.0 / metersPerDegLat);
       expect(
         LocationUtils.isInsideSpot(
           userLat: userLat,
@@ -89,7 +89,7 @@ void main() {
     });
 
     test('boundary edge — user at exactly radius distance → inside', () {
-      final userLat = spotLat + (radius / metersPerDegLat);
+      const userLat = spotLat + (radius / metersPerDegLat);
       // Haversine introduces a small floating-point spread; allow ±0.5 m
       final dist = LocationUtils.haversineDistance(
         userLat, spotLng, spotLat, spotLng,
@@ -123,7 +123,7 @@ void main() {
     });
 
     test('zero-radius spot — user 1 m away → outside', () {
-      final userLat = spotLat + (1.0 / metersPerDegLat);
+      const userLat = spotLat + (1.0 / metersPerDegLat);
       expect(
         LocationUtils.isInsideSpot(
           userLat: userLat,

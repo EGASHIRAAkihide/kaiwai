@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -95,11 +94,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     try {
       final real = await _contentRepo.fetchContents(widget.spot.id);
       if (!mounted) return;
-      // Append dev data so the screen is never empty during demos.
-      setState(() => _contents = kDebugMode ? [...real, ..._devContents] : real);
+      setState(() => _contents = real);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _contents = kDebugMode ? _devContents : []);
+      setState(() => _contents = []);
     }
   }
 
@@ -107,7 +105,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     try {
       final real = await _contentRepo.fetchContents(widget.spot.id);
       if (!mounted) return;
-      setState(() => _contents = kDebugMode ? [...real, ..._devContents] : real);
+      setState(() => _contents = real);
     } catch (_) {}
   }
 
@@ -119,137 +117,6 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     );
     if (created == true) _reloadContents();
   }
-
-  // ── Dev dummy data (visible before auth is wired up) ──────────────────────
-
-  static const _devLeaderboard = [
-    LeaderboardEntry(
-      userId: 'dev-u1',
-      username: 'APEX_RUNNER',
-      checkInCount: 47,
-    ),
-    LeaderboardEntry(
-      userId: 'dev-u2',
-      username: 'IRONCLAD_88',
-      checkInCount: 34,
-    ),
-    LeaderboardEntry(
-      userId: 'dev-u3',
-      username: 'GHOST_ATHLETE',
-      checkInCount: 29,
-    ),
-    LeaderboardEntry(
-      userId: 'dev-u4',
-      username: 'URBAN_BLADE',
-      checkInCount: 18,
-    ),
-    LeaderboardEntry(
-      userId: 'dev-u5',
-      username: 'CTRL_ALT_RUN',
-      checkInCount: 11,
-    ),
-  ];
-
-  static final _devContents = [
-    const Content(
-      id: 'dev-1',
-      spotId: 'dev',
-      authorId: 'dev',
-      title: 'HYROX PREP // WEEK 4 PROTOCOL',
-      bodyJson: {
-        'text':
-            'SESSION 01 — BASE BUILD\n'
-            '> 2km row @ 2:05/500m\n'
-            '> 50x wall ball (9kg)\n'
-            '> 1km ski erg\n'
-            '> rest 90s, repeat x3\n\n'
-            'SESSION 02 — TRANSITION DRILLS\n'
-            '> sled push 50m + burpee broad jump 20m\n'
-            '> farmers carry 200m (24kg each)\n'
-            '> repeat x4 no rest between stations\n\n'
-            '// NOTES: HR cap at 165bpm. Kill pace if\n'
-            '// you blow past that. Recovery is training.',
-      },
-      isPremium: false,
-      price: 0,
-    ),
-    const Content(
-      id: 'dev-2',
-      spotId: 'dev',
-      authorId: 'dev',
-      title: 'THRESHOLD INTERVALS — SECRET PROGRAMME',
-      bodyJson: {
-        'text':
-            'BLOCK A — LACTATE THRESHOLD\n'
-            '> 6x1000m @ 95% max HR\n'
-            '> 2min passive recovery\n'
-            '> target pace: sub 4:10/km\n\n'
-            'BLOCK B — VO2 OVERREACH\n'
-            '> 10x400m @ 105% vVO2max\n'
-            '> 90s jog recovery\n'
-            '> do NOT check watch mid-rep\n\n'
-            'BLOCK C — NEURAL ACTIVATION\n'
-            '> 5x50m all-out sprint\n'
-            '> walk back full recovery\n\n'
-            '// ACCESS LEVEL: VERIFIED MEMBER\n'
-            '// DISTRIBUTE TO OUTSIDERS = BANNED',
-      },
-      isPremium: true,
-      price: 800,
-    ),
-    const Content(
-      id: 'dev-3',
-      spotId: 'dev',
-      authorId: 'dev',
-      title: 'ROOFTOP SESSION NOTES (OPEN)',
-      bodyJson: {
-        'text':
-            'DATE: EVERY SATURDAY 06:00\n'
-            'LOCATION: LEVEL 12 CARPARK\n'
-            'BRING: KETTLEBELL 16-24kg, JUMP ROPE\n\n'
-            'FORMAT:\n'
-            '> 5min amrap warm-up\n'
-            '> 4 rounds —\n'
-            '   100x skip\n'
-            '   20x kb swing\n'
-            '   10x kb clean & press each side\n'
-            '   400m stairwell run\n'
-            '> cooldown + mobility 10min\n\n'
-            '// OPEN TO ALL. NO EGOS.\n'
-            '// FIRST TIME? SHOW UP.',
-      },
-      isPremium: false,
-      price: 0,
-    ),
-    const Content(
-      id: 'dev-4',
-      spotId: 'dev',
-      authorId: 'dev',
-      title: 'ELITE SLED PUSH MECHANICS',
-      bodyJson: {
-        'text':
-            'STANCE: shoulder-width, slight hip hinge\n'
-            'GRIP: overhand, elbows locked out\n'
-            'DRIVE ANGLE: 30-45deg from horizontal\n\n'
-            'PHASE 1 — INITIAL DRIVE\n'
-            '> explosive hip extension\n'
-            '> screw feet into ground\n'
-            '> inhale at start, exhale on stride\n\n'
-            'PHASE 2 — STEADY STATE\n'
-            '> maintain constant pressure\n'
-            '> short, rapid steps (< 0.4s ground contact)\n'
-            '> DO NOT let hips rise above shoulders\n\n'
-            'COMMON FAULTS:\n'
-            '> pulling with arms = energy leak\n'
-            '> looking down = kills posture\n'
-            '> tempo drops after 20m = undertrained\n\n'
-            '// PROPRIETARY. KAIWAI ELITE ONLY.',
-      },
-      isPremium: true,
-      price: 1200,
-    ),
-  ];
-
 
   @override
   Widget build(BuildContext context) {
@@ -374,10 +241,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
           cityCode: TimezoneUtils.cityCode(widget.spot.cityName),
           userInsideSpot: widget.userInsideSpot,
         ),
-        _RankingTab(
-          stream: _leaderboardStream,
-          devEntries: kDebugMode ? _devLeaderboard : const [],
-        ),
+        _RankingTab(stream: _leaderboardStream),
       ],
     );
   }
@@ -832,26 +696,15 @@ class _BarricadeTapeOverlay extends StatelessWidget {
 // ── Ranking Tab ───────────────────────────────────────────────────────────────
 
 class _RankingTab extends StatelessWidget {
-  const _RankingTab({
-    required this.stream,
-    required this.devEntries,
-  });
+  const _RankingTab({required this.stream});
 
   final Stream<List<LeaderboardEntry>> stream;
-
-  /// Fallback/filler entries always appended after real data.
-  final List<LeaderboardEntry> devEntries;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<LeaderboardEntry>>(
       stream: stream,
       builder: (context, snapshot) {
-        // On error (e.g. RLS blocks unauthenticated reads) show dev data.
-        if (snapshot.hasError) {
-          return _buildList(devEntries);
-        }
-
         if (!snapshot.hasData) {
           return const Center(
             child: CircularProgressIndicator(
@@ -861,19 +714,31 @@ class _RankingTab extends StatelessWidget {
           );
         }
 
-        // FIRST real data, SECOND dev filler — screen never looks empty.
-        final merged = [...snapshot.data!, ...devEntries];
-        return _buildList(merged);
-      },
-    );
-  }
+        final entries = snapshot.data!;
+        if (entries.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.leaderboard_outlined,
+                    color: AppTheme.textSecondary, size: 40),
+                const SizedBox(height: 12),
+                Text(
+                  AppL10n.of(context).noCheckInsYet,
+                  style: _streetFont(size: 12, color: AppTheme.textSecondary),
+                ),
+              ],
+            ),
+          );
+        }
 
-  Widget _buildList(List<LeaderboardEntry> entries) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: entries.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, i) => _RankingRow(entry: entries[i], rank: i + 1),
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: entries.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (_, i) => _RankingRow(entry: entries[i], rank: i + 1),
+        );
+      },
     );
   }
 }

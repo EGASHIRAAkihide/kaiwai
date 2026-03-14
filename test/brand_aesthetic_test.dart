@@ -176,7 +176,7 @@ void main() {
       final btn = buttons.first;
       // Resolve the background color with no active material states.
       final bgColor =
-          btn.style?.backgroundColor?.resolve(const <MaterialState>{});
+          btn.style?.backgroundColor?.resolve(const <WidgetState>{});
       expect(
         bgColor,
         equals(AppTheme.accent),
@@ -202,7 +202,7 @@ void main() {
 
       final btn = buttons.first;
       final shape = btn.style?.shape
-          ?.resolve(const <MaterialState>{}) as RoundedRectangleBorder?;
+          ?.resolve(const <WidgetState>{}) as RoundedRectangleBorder?;
       expect(
         shape?.borderRadius,
         equals(BorderRadius.zero),

@@ -24,6 +24,6 @@ class CheckInRepository {
         })
         .select()
         .single();
-    return CheckIn.fromJson(response as Map<String, dynamic>);
+    return CheckIn.fromJson(response);
   }
 }

@@ -20,20 +20,29 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>io.supabase.kaiwai</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>常に位置情報を利用して、最適なトレーニングスポットを提案します。</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>バックグラウンドでも界隈への接近を通知するために位置情報を使用します。</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>近くの「界隈」を検知するために位置情報を使用します。</string>
+	<string>近くの「界隈」を検知してチェックインするために位置情報を使用します。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
-		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>常に位置情報を利用して、最適なトレーニングスポットを提案します。</string>
-		<key>NSLocationAlwaysUsageDescription</key>
-		<string>バックグラウンドでも界隈への接近を通知するために位置情報を使用します。</string>
-		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>近くの「界隈」を検知してチェックインするために位置情報を使用します。</string>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 		<key>UISceneConfigurations</key>
@@ -53,17 +62,6 @@
 			</array>
 		</dict>
 	</dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>io.supabase.kaiwai</string>
-			</array>
-		</dict>
-	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
