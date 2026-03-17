@@ -49,6 +49,9 @@ class ContentRepository {
     final response = await _client
         .rpc('get_spot_leaderboard', params: {'p_spot_id': spotId});
 
+    // Supabase may return null instead of [] when the RPC produces 0 rows.
+    if (response == null) return const [];
+
     return (response as List)
         .map((row) => LeaderboardEntry.fromJson(row as Map<String, dynamic>))
         .toList();
@@ -93,11 +96,26 @@ class ContentRepository {
   ///
   /// Subsequent emissions are triggered by realtime changes to `check_ins`.
   Stream<List<LeaderboardEntry>> leaderboardStream(String spotId) async* {
-    yield await getLeaderboard(spotId);
-    yield* _client
+    // Always emit an initial snapshot. Swallow any error so the stream never
+    // terminates before emitting — a null/error response becomes an empty list.
+    try {
+      yield await getLeaderboard(spotId);
+    } catch (e) {
+      debugPrint('[ContentRepository] leaderboardStream initial fetch error: $e');
+      yield const [];
+    }
+
+    // Continue forwarding realtime check-in events; swallow per-event errors
+    // to avoid breaking the stream on transient failures.
+    await for (final _ in _client
         .from('check_ins')
         .stream(primaryKey: ['id'])
-        .eq('spot_id', spotId)
-        .asyncMap((_) => getLeaderboard(spotId));
+        .eq('spot_id', spotId)) {
+      try {
+        yield await getLeaderboard(spotId);
+      } catch (_) {
+        // Keep last known state; don't re-emit on error.
+      }
+    }
   }
 }

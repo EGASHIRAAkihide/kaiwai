@@ -709,13 +709,20 @@ class _RankingTab extends StatelessWidget {
     return StreamBuilder<List<LeaderboardEntry>>(
       stream: stream,
       builder: (context, snapshot) {
+        // Show loading only while actively waiting for the first event.
+        // If the stream errored or closed without data, fall through to
+        // the empty state rather than spinning forever.
         if (!snapshot.hasData) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: AppTheme.accent,
-              strokeWidth: 2,
-            ),
-          );
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.accent,
+                strokeWidth: 2,
+              ),
+            );
+          }
+          // hasError, done, or none — show empty state.
+          return const _RankingEmptyState();
         }
 
         final entries = snapshot.data!;
