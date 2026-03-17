@@ -109,6 +109,8 @@ class AppL10n {
   String get noCheckInsYet =>
       _isJa ? 'まだチェックインがありません' : 'NO CHECK-INS YET';
 
+  String get beFirstToEnter => _isJa ? '最初に入ろう' : 'BE THE FIRST';
+
   String get radiusSuffix => _isJa ? 'M 範囲' : 'M RADIUS';
   String get localTimeLabel => _isJa ? '現地時刻' : 'LOCAL';
 }

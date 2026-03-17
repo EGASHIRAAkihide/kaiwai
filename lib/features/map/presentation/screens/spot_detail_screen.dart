@@ -591,7 +591,11 @@ class _ContentCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           content.title,
-                          style: _streetFont(size: 14, spacing: 1.0),
+                          style: AppTheme.contentTitleStyle(
+                            Localizations.localeOf(context),
+                            fontSize: 14,
+                            letterSpacing: 1.0,
+                          ),
                         ),
                       ),
                       if (content.isPremium) ...[
@@ -716,20 +720,7 @@ class _RankingTab extends StatelessWidget {
 
         final entries = snapshot.data!;
         if (entries.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.leaderboard_outlined,
-                    color: AppTheme.textSecondary, size: 40),
-                const SizedBox(height: 12),
-                Text(
-                  AppL10n.of(context).noCheckInsYet,
-                  style: _streetFont(size: 12, color: AppTheme.textSecondary),
-                ),
-              ],
-            ),
-          );
+          return const _RankingEmptyState();
         }
 
         return ListView.separated(
@@ -739,6 +730,95 @@ class _RankingTab extends StatelessWidget {
           itemBuilder: (_, i) => _RankingRow(entry: entries[i], rank: i + 1),
         );
       },
+    );
+  }
+}
+
+// ── Ranking Empty State ───────────────────────────────────────────────────────
+
+class _RankingEmptyState extends StatelessWidget {
+  const _RankingEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Empty podium — three slots with dashes
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _PodiumSlot(label: 'I',   height: 64),
+                SizedBox(width: 4),
+                _PodiumSlot(label: 'II',  height: 52),
+                SizedBox(width: 4),
+                _PodiumSlot(label: 'III', height: 44),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              l10n.noCheckInsYet,
+              style: _streetFont(size: 12, color: AppTheme.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.beFirstToEnter,
+              style: _streetFont(
+                size: 11,
+                color: AppTheme.accent.withValues(alpha: 0.7),
+                spacing: 2.0,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PodiumSlot extends StatelessWidget {
+  const _PodiumSlot({required this.label, required this.height});
+
+  final String label;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 64,
+          height: height,
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            border: Border.all(color: AppTheme.border),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '---',
+            style: GoogleFonts.rubikMonoOne(
+              color: AppTheme.border,
+              fontSize: 13,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: _streetFont(
+            size: 9,
+            color: AppTheme.border,
+            spacing: 1.0,
+          ),
+        ),
+      ],
     );
   }
 }

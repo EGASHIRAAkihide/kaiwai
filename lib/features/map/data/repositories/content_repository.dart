@@ -87,11 +87,14 @@ class ContentRepository {
 
   /// Real-time stream of leaderboard entries for [spotId].
   ///
-  /// Emits an updated list whenever a new check-in is recorded for the spot.
-  /// Uses Supabase Realtime on the `check_ins` table; each emission triggers
-  /// a fresh RPC call so the aggregated counts are always accurate.
-  Stream<List<LeaderboardEntry>> leaderboardStream(String spotId) {
-    return _client
+  /// Always emits an initial snapshot immediately so the UI never hangs on
+  /// a loading spinner when there are zero check-ins (Supabase's `.stream()`
+  /// may not emit at all when the filtered result set is empty).
+  ///
+  /// Subsequent emissions are triggered by realtime changes to `check_ins`.
+  Stream<List<LeaderboardEntry>> leaderboardStream(String spotId) async* {
+    yield await getLeaderboard(spotId);
+    yield* _client
         .from('check_ins')
         .stream(primaryKey: ['id'])
         .eq('spot_id', spotId)
