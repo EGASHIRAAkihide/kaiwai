@@ -85,6 +85,36 @@ class SpotRepository {
     return spots;
   }
 
+  /// Creates a new spot via the `create_spot` Supabase RPC.
+  ///
+  /// The RPC constructs the PostGIS `geography(POINT)` column server-side
+  /// via `ST_MakePoint(p_lng, p_lat)::geography`, so plain lat/lng doubles
+  /// are all that is required from the client.
+  ///
+  /// Returns the UUID of the newly created spot.
+  Future<String> createSpot({
+    required String name,
+    required double latitude,
+    required double longitude,
+    required int radiusMeters,
+    String? description,
+    String? city,
+    String? country,
+  }) async {
+    debugPrint('[SpotRepository] createSpot → name=$name, lat=$latitude, lng=$longitude');
+    final response = await _client.rpc('create_spot', params: {
+      'p_name': name,
+      'p_lat': latitude,
+      'p_lng': longitude,
+      'p_radius_m': radiusMeters,
+      'p_description': description,
+      'p_city': city,
+      'p_country': country,
+    });
+    debugPrint('[SpotRepository] createSpot → new spot id: $response');
+    return response as String;
+  }
+
   /// Fetches spots within [radiusMeters] of the given coordinates.
   ///
   /// Required Supabase SQL:

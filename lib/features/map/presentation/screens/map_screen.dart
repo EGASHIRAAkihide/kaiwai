@@ -13,6 +13,7 @@ import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/spot_repository.dart';
 import '../../domain/models/spot.dart';
 import '../widgets/spot_marker_widget.dart';
+import 'create_spot_screen.dart';
 import 'spot_detail_screen.dart';
 
 /// The main map screen — full-screen dark map with spot markers.
@@ -240,6 +241,37 @@ class _MapScreenState extends State<MapScreen> {
     _mapController.move(target, 15);
   }
 
+  Future<void> _openCreateSpot() async {
+    final location = _userLocation;
+    if (location == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppTheme.surface,
+          behavior: SnackBarBehavior.floating,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          content: Text(
+            'GPS REQUIRED — WAITING FOR LOCATION',
+            style: GoogleFonts.robotoMono(
+              color: AppTheme.danger,
+              fontSize: 11,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    final newId = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => CreateSpotScreen(
+          initialLatitude: location.latitude,
+          initialLongitude: location.longitude,
+        ),
+      ),
+    );
+    if (newId != null) _loadSpots();
+  }
+
   void _dismissSheet() {
     Navigator.of(context).pop();
     setState(() => _selectedSpot = null);
@@ -278,7 +310,7 @@ class _MapScreenState extends State<MapScreen> {
           _buildProximityBanner(),
         ],
       ),
-      floatingActionButton: _buildRecenterFab(),
+      floatingActionButton: _buildFabs(),
     );
   }
 
@@ -377,15 +409,18 @@ class _MapScreenState extends State<MapScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            // App wordmark
+            // App wordmark — uses locale-aware style so Japanese CJK glyphs
+            // get NotoSansJP (which ships bold weights) instead of the
+            // generic 'monospace' fallback that renders thin on iOS.
             Text(
               '界隈',
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                    color: AppTheme.textPrimary,
-                  ),
+              style: AppTheme.appTitleTheme(
+                Localizations.localeOf(context),
+              ).copyWith(
+                color: AppTheme.textPrimary,
+                letterSpacing: -0.5,
+                decoration: TextDecoration.none,
+              ),
             ),
             const Spacer(),
 
@@ -445,11 +480,43 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildRecenterFab() {
-    return FloatingActionButton(
-      onPressed: _recenterOnUser,
-      tooltip: 'My location',
-      child: const Icon(Icons.my_location_rounded, size: 22),
+  Widget _buildFabs() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Recenter — small, secondary
+        FloatingActionButton.small(
+          heroTag: 'recenter',
+          onPressed: _recenterOnUser,
+          tooltip: 'My location',
+          backgroundColor: AppTheme.surface,
+          foregroundColor: AppTheme.textPrimary,
+          elevation: 0,
+          shape: const CircleBorder(
+            side: BorderSide(color: AppTheme.border),
+          ),
+          child: const Icon(Icons.my_location_rounded, size: 18),
+        ),
+        const SizedBox(height: 12),
+        // Create Kaiwai — primary accent
+        FloatingActionButton.extended(
+          heroTag: 'create',
+          onPressed: _openCreateSpot,
+          backgroundColor: AppTheme.accent,
+          foregroundColor: AppTheme.background,
+          elevation: 0,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          label: Text(
+            '+ KAIWAI',
+            style: GoogleFonts.robotoMono(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
