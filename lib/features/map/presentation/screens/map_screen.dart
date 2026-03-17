@@ -300,17 +300,24 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Pull safe-area bottom once so all bottom-anchored widgets use the same
+    // baseline — avoids the home-indicator overlap on notched devices.
+    final safeBottom = MediaQuery.of(context).padding.bottom;
+    final bannerVisible = _nearbySpot != null;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
+      // FABs are managed inside the Stack so they can animate in sync with the
+      // ProximityBanner and never overlap it.
       body: Stack(
         children: [
           _buildMap(),
           _buildTopOverlay(),
           if (_errorMessage != null) _buildErrorBanner(),
-          _buildProximityBanner(),
+          _buildProximityBanner(safeBottom: safeBottom),
+          _buildFabs(safeBottom: safeBottom, bannerVisible: bannerVisible),
         ],
       ),
-      floatingActionButton: _buildFabs(),
     );
   }
 
@@ -443,8 +450,11 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildErrorBanner() {
+    // Positioned below the top overlay, not at the bottom — keeps the
+    // bottom area free for ProximityBanner and FABs.
+    final safeTop = MediaQuery.of(context).padding.top;
     return Positioned(
-      bottom: 100,
+      top: safeTop + 64,
       left: 16,
       right: 16,
       child: Container(
@@ -461,16 +471,19 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildProximityBanner() {
+  Widget _buildProximityBanner({required double safeBottom}) {
     final spot = _nearbySpot;
     final dist = _nearbySpotDistance;
+    final visible = spot != null;
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 350),
       curve: Curves.easeOutCubic,
-      bottom: spot != null ? 100 : -140,
+      // Rests just above the home indicator when visible; slides below the
+      // screen when hidden.  FABs animate to clear this space (see _buildFabs).
+      bottom: visible ? safeBottom + 16 : -(safeBottom + _kBannerHeight + 40),
       left: 16,
       right: 16,
-      child: spot != null
+      child: visible
           ? ProximityBanner(
               spot: spot,
               distanceMeters: dist?.round() ?? 0,
@@ -480,43 +493,60 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildFabs() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        // Recenter — small, secondary
-        FloatingActionButton.small(
-          heroTag: 'recenter',
-          onPressed: _recenterOnUser,
-          tooltip: 'My location',
-          backgroundColor: AppTheme.surface,
-          foregroundColor: AppTheme.textPrimary,
-          elevation: 0,
-          shape: const CircleBorder(
-            side: BorderSide(color: AppTheme.border),
+  // ProximityBanner outer height: vertical padding (16×2) + Row content (44).
+  static const double _kBannerHeight = 76.0;
+  // Gap between the top of the ProximityBanner and the bottom of the FABs.
+  static const double _kFabBannerGap = 12.0;
+
+  Widget _buildFabs({required double safeBottom, required bool bannerVisible}) {
+    // When the ProximityBanner slides in, the FABs animate upward so they
+    // always sit directly above the banner without any overlap.
+    final bottom = bannerVisible
+        ? safeBottom + 16 + _kBannerHeight + _kFabBannerGap
+        : safeBottom + 16;
+
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+      right: 16,
+      bottom: bottom,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Recenter — small, secondary
+          FloatingActionButton.small(
+            heroTag: 'recenter',
+            onPressed: _recenterOnUser,
+            tooltip: 'My location',
+            backgroundColor: AppTheme.surface,
+            foregroundColor: AppTheme.textPrimary,
+            elevation: 0,
+            shape: const CircleBorder(
+              side: BorderSide(color: AppTheme.border),
+            ),
+            child: const Icon(Icons.my_location_rounded, size: 18),
           ),
-          child: const Icon(Icons.my_location_rounded, size: 18),
-        ),
-        const SizedBox(height: 12),
-        // Create Kaiwai — primary accent
-        FloatingActionButton.extended(
-          heroTag: 'create',
-          onPressed: _openCreateSpot,
-          backgroundColor: AppTheme.accent,
-          foregroundColor: AppTheme.background,
-          elevation: 0,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-          label: Text(
-            '+ KAIWAI',
-            style: GoogleFonts.robotoMono(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.5,
+          const SizedBox(height: 12),
+          // Create Kaiwai — primary accent
+          FloatingActionButton.extended(
+            heroTag: 'create',
+            onPressed: _openCreateSpot,
+            backgroundColor: AppTheme.accent,
+            foregroundColor: AppTheme.background,
+            elevation: 0,
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            label: Text(
+              '+ KAIWAI',
+              style: GoogleFonts.robotoMono(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.5,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
